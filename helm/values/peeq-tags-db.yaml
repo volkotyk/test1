@@ -1,0 +1,4 @@
+postgres:
+  database: peeqtagsdb
+  hostname: jx-staging-peeq-postgres
+  secretName: jx-staging-peeq-tags-db

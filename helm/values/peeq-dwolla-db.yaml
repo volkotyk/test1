@@ -1,0 +1,4 @@
+postgres:
+  database: peeqdwolladb
+  hostname: jx-staging-peeq-postgres
+  secretName: jx-staging-peeq-dwolla-db

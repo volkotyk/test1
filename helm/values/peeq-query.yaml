@@ -1,0 +1,24 @@
+env:
+  MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+  SERVER_FORWARD_HEADERS_STRATEGY: NATIVE
+  logging_level_com_peeq_query: DEBUG
+  SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  SPRING_JPA_SHOW_SQL: 'false'
+extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+livenessProbe:
+  initialDelaySeconds: 120
+postgres:
+  ddlAuto: validate
+  enabled: true
+  generateDdl: false
+  name: peeq-postgres

@@ -1,0 +1,4 @@
+postgres:
+  database: peeqencryptiondb
+  hostname: jx-staging-peeq-postgres
+  secretName: jx-staging-peeq-encryption-db

@@ -1,0 +1,57 @@
+env:
+- name: DEPLOY_NAMESPACE
+  value: jx-staging
+pipelineConfig:
+  env:
+  - name: DEPLOY_NAMESPACE
+    value: jx-staging
+  pipelines:
+    pullRequest:
+      pipeline:
+        stages:
+        - agent:
+            image: gcr.io/jenkinsxio/builder-go
+          dir: /workspace/source
+          name: from-build-pack
+          steps:
+          - command: make init
+            name: pr-make-init
+          - command: make build
+            name: pr-make-build
+          - command: make dry-run
+            name: pr-make-dry-run
+    release:
+      pipeline:
+        stages:
+        - agent:
+            image: gcr.io/jenkinsxio/builder-go
+          dir: /workspace/source
+          name: from-build-pack
+          steps:
+          - command: jx step git credentials
+            name: setup-jx-git-credentials
+          - command: make init
+            name: build-helm-init
+          - command: make build
+            name: build-helm-build
+          - command: make install
+            name: build-helm-install
+          - command: chmod +x wait_deployment.sh && ./wait_deployment.sh
+            name: wait-for-all-pods-Running-or-Succeeded
+          - command: make test-configure
+            name: build-make-test-configure
+          - command: make test-api
+            image: gcr.io/jenkinsxio/builder-gradle
+            name: build-make-test-api
+          - command: make test-rabbitmq-sms
+            image: gcr.io/jenkinsxio/builder-gradle
+            name: build-make-test-rabbitmq-sms
+          - command: make test-ui-celeb
+            image: gcr.io/jenkinsxio/builder-gradle
+            name: build-make-test-ui-celeb
+          - command: make test-ui-fan
+            image: gcr.io/jenkinsxio/builder-gradle
+            name: build-make-test-ui-fan
+          - command: make test-jmeter
+            image: gcr.io/jenkinsxio/builder-maven-java11
+            name: build-make-test-jmeter

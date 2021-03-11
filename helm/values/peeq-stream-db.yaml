@@ -1,0 +1,4 @@
+postgres:
+  database: peeqstreamdb
+  hostname: jx-staging-peeq-postgres
+  secretName: jx-staging-peeq-stream-db

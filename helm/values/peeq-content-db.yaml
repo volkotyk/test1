@@ -1,0 +1,6 @@
+postgres:
+  database: peeqcontentdb
+  hostname: jx-staging-peeq-postgres
+  secretKey: postgresql-password
+  secretName: jx-staging-peeq-content-db
+  username: peeqcontent

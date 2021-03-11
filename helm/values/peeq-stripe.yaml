@@ -1,0 +1,39 @@
+env:
+  MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+  SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  VELOCITYZ_PAYMENT_STRIPE_WEBHOOK_URL: '{{ tpl .Values.global.peeq.url $ }}/api/stripe/webhook'
+extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  - name: VELOCITYZ_PAYMENT_STRIPE_KEY
+    valueFrom:
+      secretKeyRef:
+        key: VELOCITYZ_PAYMENT_STRIPE_KEY
+        name: peeq-stripe
+  - name: VELOCITYZ_PAYMENT_STRIPE_WEBHOOK_SECRET
+    valueFrom:
+      secretKeyRef:
+        key: VELOCITYZ_PAYMENT_STRIPE_WEBHOOK_SECRET
+        name: peeq-stripe
+  - name: VELOCITYZ_PAYMENT_STRIPE_SIGNING_SECRET
+    valueFrom:
+      secretKeyRef:
+        key: VELOCITYZ_PAYMENT_STRIPE_SIGNING_SECRET
+        name: peeq-stripe
+postgres:
+  database: peeqstripedb
+  ddlAuto: none
+  enabled: true
+  generateDdl: false
+  name: peeq-postgres
+  secretKey: postgresql-password
+  secretName: jx-staging-peeq-stripe-db
+  username: peeqstripe

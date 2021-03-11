@@ -1,0 +1,19 @@
+env:
+  MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+  RABBITMQ_HOST: jx-staging-test-rabbitmq
+extraEnv:
+  - name: ELASTICSEARCH_HOST
+    valueFrom:
+      secretKeyRef:
+        name: elasticsearch
+        key: ELASTICSEARCH_HOST
+  - name: ELASTICSEARCH_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: elasticsearch
+        key: ELASTICSEARCH_PASSWORD
+  - name: ELASTICSEARCH_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: elasticsearch
+        key: ELASTICSEARCH_USERNAME

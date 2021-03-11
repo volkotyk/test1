@@ -1,0 +1,1077 @@
+PipelineSecrets: {}
+acme:
+  dns01:
+    clouddns:
+      project: favedom-dev
+      serviceAccountSecretRef:
+        key: credentials.json
+        name: external-dns-gcp-sa
+    cnameStrategy: None
+  email: favedom-dev@softcannery.com
+celeb-meet-greet-bpm:
+  replicaCount: 0
+  env:
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  livenessProbe:
+    initialDelaySeconds: 120
+celeb-onboarding-bpm:
+  domain: '{{ tpl .Values.global.expose.domain $ }}'
+  env:
+    JDBC_URL: jdbc:postgresql://{{ .Release.Name }}-peeq-postgres:5432/peeq_celeb_bpm_db
+    JDBC_USER: postgres
+    KEYCLOAK_HOST: '{{ tpl .Values.global.keycloak.url $ }}'
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  - name: JDBC_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: postgresql-password
+        name: '{{ .Release.Name }}-celeb-onboarding-bpm'
+cleanup:
+  Annotations:
+    helm.sh/hook: pre-delete
+    helm.sh/hook-delete-policy: hook-succeeded
+  Args:
+  - --cleanup
+expose:
+  Annotations:
+  #   helm.sh/hook: post-install,post-upgrade
+  #   helm.sh/hook-delete-policy: hook-succeeded
+  Args:
+  # - --v
+  # - 4
+  config:
+    domain: favedom-dev.softcannery.com
+    exposer: Ingress
+    http: "false"
+    tlsSecretName: tls-favedom-dev-softcannery-com-p
+    tlsacme: "true"
+    urltemplate: '{{.Service}}-{{.Namespace}}.{{.Domain}}'
+  production: true
+fan-meet-greet-bpm:
+  replicaCount: 0
+  env:
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+    logging_level_com_fan_meet_greet_bpm: DEBUG
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  livenessProbe:
+    initialDelaySeconds: 120
+global:
+  domain: jx-staging.favedom-dev.softcannery.com
+  keycloak:
+    domain: identity-{{ tpl .Values.global.domain $ }}
+    realm: peeq
+    url: https://{{ tpl .Values.global.keycloak.domain $ }}
+  peeq:
+    domain: app-{{ tpl .Values.global.domain $ }}
+    url: https://{{ tpl .Values.global.peeq.domain $ }}
+  rtmp:
+    http:
+      domain: nginx-rtmp.favedom-dev.softcannery.com
+      url: https://{{ tpl .Values.global.rtmp.http.domain $ }}
+    ingest:
+      domain: nginx-rtmp.default.svc.cluster.local
+handler-meet-greet-bpm:
+  replicaCount: 0
+  env:
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  livenessProbe:
+    initialDelaySeconds: 120
+handler-onboarding-bpm:
+  replicaCount: 0
+identity:
+  keycloak:
+    existingSecret: keycloak-http
+    existingSecretKey: password
+    extraEnv: |
+      - name: KEYCLOAK_RABBITMQ_HOST
+        value: "{{ .Release.Name }}-rabbitmq"
+      - name: KEYCLOAK_RABBITMQ_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            key: rabbitmq-password
+            name: rabbitmq
+      - name: KEYCLOAK_RABBITMQ_USERNAME
+        valueFrom:
+          secretKeyRef:
+            key: rabbitmq-username
+            name: rabbitmq
+    extraInitContainers: |-
+      - name: theme-provider
+        image: gcr.io/favedom-dev/peeq-fan-keycloak-theme:0.0.84
+        imagePullPolicy: IfNotPresent
+        command:
+          - sh
+        args:
+          - -c
+          - |
+            echo "Copying theme..."
+            cp -R /theme/* /peeq-fan
+        volumeMounts:
+          - name: peeq-fan
+            mountPath: /peeq-fan
+      - name: theme-provider-celeb
+        image: gcr.io/favedom-dev/peeq-celeb-keycloak-theme:0.0.99
+        imagePullPolicy: IfNotPresent
+        command:
+          - sh
+        args:
+          - -c
+          - |
+            echo "Copying theme..."
+            cp -R /theme/* /peeq-celeb
+        volumeMounts:
+          - name: peeq-celeb
+            mountPath: /peeq-celeb
+      - name: theme-provider-handler
+        image: gcr.io/favedom-dev/peeq-handler-keycloak-theme:0.0.5
+        imagePullPolicy: IfNotPresent
+        command:
+          - sh
+        args:
+          - -c
+          - |
+            echo "Copying theme..."
+            cp -R /theme/* /peeq-handler
+        volumeMounts:
+          - name: peeq-handler
+            mountPath: /peeq-handler
+    extraVolumeMounts: |-
+      - name: peeq-fan
+        mountPath: /opt/jboss/keycloak/themes/peeq-fan
+      - name: peeq-celeb
+        mountPath: /opt/jboss/keycloak/themes/peeq-celeb
+      - name: peeq-handler
+        mountPath: /opt/jboss/keycloak/themes/peeq-handler
+    extraVolumes: |-
+      - name: peeq-fan
+        emptyDir: {}
+      - name: peeq-celeb
+        emptyDir: {}
+      - name: peeq-handler
+        emptyDir: {}
+    image:
+      repository: gcr.io/favedom-dev/peeq-keycloak
+      tag: 0.0.6
+    ingress:
+      enabled: false
+    persistence:
+      dbVendor: postgres
+      deployPostgres: true
+      existingSecretPasswordKey: postgresql-password
+    service:
+      annotations:
+        fabric8.io/expose: "true"
+        fabric8.io/host.name: identity
+        fabric8.io/ingress.annotations: |-
+          kubernetes.io/ingress.class: nginx
+          nginx.ingress.kubernetes.io/proxy-buffer-size: 16k
+          nginx.ingress.kubernetes.io/affinity: cookie
+        fabric8.io/ingress.path: /
+  postgresql:
+    existingSecret: jx-staging-postgresql
+    persistence:
+      enabled: true
+jenkins:
+  Servers:
+    Global: {}
+keycloak:
+  persistence:
+    deployPostgres: true
+peeq-broadcast:
+  domain: '{{ tpl .Values.global.peeq.domain $ }}'
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  keycloak:
+    domain: '{{ tpl .Values.global.keycloak.domain $ }}'
+    realm: '{{ .Values.global.keycloak.realm }}'
+  postgres:
+    database: peeqbroadcastdb
+    ddlAuto: none
+    enabled: true
+    generateDdl: false
+    name: peeq-postgres
+    secretKey: postgresql-password
+    secretName: jx-staging-peeq-broadcast-db
+    username: peeqbroadcast
+peeq-broadcast-bpm:
+  domain: '{{ tpl .Values.global.peeq.domain $ }}'
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  keycloak:
+    domain: '{{ tpl .Values.global.keycloak.domain $ }}'
+    realm: '{{ .Values.global.keycloak.realm }}'
+  replicaCount: 0
+peeq-celeb-fe:
+  env:
+    PEEQ_CELEB_LOGROCKET_ENABLED: "true"
+    PEEQ_CELEB_LOGROCKET_KEY: 'peeq/peeq-celeb-fe'
+peeq-celebrity:
+  domain: '{{ tpl .Values.global.peeq.domain $ }}'
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: AUTH_KEYCLOAK_CLIENTID
+    valueFrom:
+      secretKeyRef:
+        key: AUTH_KEYCLOAK_CLIENTID
+        name: jx-staging-peeq-fan
+  - name: AUTH_KEYCLOAK_CLIENTSECRET
+    valueFrom:
+      secretKeyRef:
+        key: AUTH_KEYCLOAK_CLIENTSECRET
+        name: jx-staging-peeq-fan
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  keycloak:
+    domain: '{{ tpl .Values.global.keycloak.domain $ }}'
+    realm: '{{ .Values.global.keycloak.realm }}'
+  postgres:
+    database: peeqcelebritydb
+    ddlAuto: none
+    enabled: true
+    generateDdl: false
+    name: peeq-postgres
+    secretKey: postgresql-password
+    secretName: jx-staging-peeq-celebrity-db
+    username: peeqcelebrity
+peeq-charity:
+  domain: '{{ tpl .Values.global.peeq.domain $ }}'
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  keycloak:
+    domain: '{{ tpl .Values.global.keycloak.domain $ }}'
+    realm: '{{ .Values.global.keycloak.realm }}'
+  postgres:
+    database: peeqcharitydb
+    ddlAuto: none
+    enabled: true
+    generateDdl: false
+    name: peeq-postgres
+    secretKey: postgresql-password
+    secretName: jx-staging-peeq-charity-db
+    username: peeqcharity
+
+peeq-content:
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  livenessProbe:
+    initialDelaySeconds: 120
+  persistence:
+    accessMode: ReadWriteMany
+    enabled: true
+    size: 50Gi
+    storageClass: nfs-client
+  postgres:
+    enabled: true
+    name: peeq-postgres
+peeq-custom-tixr:
+  domain: '{{ tpl .Values.global.peeq.domain $ }}'
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  keycloak:
+    domain: '{{ tpl .Values.global.keycloak.domain $ }}'
+    realm: '{{ .Values.global.keycloak.realm }}'
+  postgres:
+    database: peeqtcustomtixrdb
+    ddlAuto: none
+    enabled: true
+    generateDdl: false
+    name: peeq-postgres
+    secretKey: postgresql-password
+    secretName: jx-staging-peeq-custom-tixr-db
+    username: peeqtcustomtixr
+  replicaCount: 0
+peeq-dwolla:
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_DATASOURCE_URL: jdbc:postgresql://{{ .Release.Name }}-peeq-postgres:5432/peeqdwolladb
+    SPRING_DATASOURCE_USERNAME: postgres
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+    VELOCITYZ_PAYMENT_DWOLLA_PRODUCTION: "false"
+    VELOCITYZ_PAYMENT_DWOLLA_SUBSCRIBE_WEBHOOKS: "false"
+    VELOCITYZ_PAYMENT_DWOLLA_WEBHOOK_URL: '{{ tpl .Values.global.peeq.url $ }}/api/dwolla/webhook'
+  envFrom:
+  - secretRef:
+      name: peeq-dwolla
+  extraEnv:
+  - name: SPRING_DATASOURCE_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: postgresql-password
+        name: '{{ .Release.Name }}-peeq-postgres'
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+peeq-email:
+  env:
+    ASPNETCORE_ENVIRONMENT: Staging
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    PEEQ_AUTH_KEYCLOAK_REALM: '{{ .Values.global.keycloak.realm }}'
+    PEEQ_AUTH_KEYCLOAK_URL: '{{ tpl .Values.global.keycloak.url $ }}'
+    PEEQ_CONNECTIONSTRINGS_POSTGRESQL_DATABASE: peeqemaildb
+    PEEQ_CONNECTIONSTRINGS_POSTGRESQL_HOST: '{{ .Release.Name }}-peeq-postgres'
+    PEEQ_CONNECTIONSTRINGS_POSTGRESQL_PORT: "5432"
+    PEEQ_CONNECTIONSTRINGS_POSTGRESQL_USERNAME: peeq_email
+    PEEQ_CONNECTIONSTRINGS_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+    PEEQ_CONNECTIONSTRINGS_RABBITMQ_PORT: "5672"
+    PEEQ_CONNECTIONSTRINGS_RABBITMQ_VHOST: /
+    PEEQ_MANDRILL_NOTIFICATIONFROMEMAIL: notifications.staging@joinpeeq.com
+    PEEQ_MANDRILL_VERIFICATIONFROMEMAIL: notifications.staging@joinpeeq.com
+    PEEQ_URL: '{{ tpl .Values.global.peeq.url $ }}'
+  extraEnv:
+  - name: PEEQ_CONNECTIONSTRINGS_POSTGRESQL_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: postgresql-password
+        name: jx-staging-peeq-email-pg
+  - name: PEEQ_CONNECTIONSTRINGS_RABBITMQ_USER
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: PEEQ_CONNECTIONSTRINGS_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  - name: PEEQ_MANDRILL_API_KEY
+    valueFrom:
+      secretKeyRef:
+        key: MANDRILL_API_KEY
+        name: peeq-email-secrets
+  - name: PEEQ_MANDRILL_WEBHOOK_KEY
+    valueFrom:
+      secretKeyRef:
+        key: MANDRILL_WEBHOOK_KEY
+        name: peeq-email-secrets
+peeq-fan:
+  domain: '{{ tpl .Values.global.peeq.domain $ }}'
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: AUTH_KEYCLOAK_CLIENTID
+    valueFrom:
+      secretKeyRef:
+        key: AUTH_KEYCLOAK_CLIENTID
+        name: jx-staging-peeq-fan
+  - name: AUTH_KEYCLOAK_CLIENTSECRET
+    valueFrom:
+      secretKeyRef:
+        key: AUTH_KEYCLOAK_CLIENTSECRET
+        name: jx-staging-peeq-fan
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  keycloak:
+    domain: '{{ tpl .Values.global.keycloak.domain $ }}'
+    realm: '{{ .Values.global.keycloak.realm }}'
+  postgres:
+    database: peeqfandb
+    ddlAuto: none
+    enabled: true
+    generateDdl: false
+    name: peeq-postgres
+    secretKey: postgresql-password
+    secretName: jx-staging-peeq-fan-db
+    username: peeqfan
+peeq-fan-fe:
+  env:
+    PEEQ_FAN_LOGROCKET_ENABLED: "true"
+    PEEQ_FAN_LOGROCKET_KEY: 'peeq/peeq-fan-fe'
+peeq-handler-fe:
+  env:
+    PEEQ_HANDLER_LOGROCKET_ENABLED: "true"
+    PEEQ_HANDLER_LOGROCKET_KEY: 'peeq/peeq-handler-fe'
+peeq-handler-broadcast-bpm:
+  env:
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  livenessProbe:
+    initialDelaySeconds: 120
+peeq-inventory:
+  domain: '{{ tpl .Values.global.peeq.domain $ }}'
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  keycloak:
+    domain: '{{ tpl .Values.global.keycloak.domain $ }}'
+    realm: '{{ .Values.global.keycloak.realm }}'
+  peeq:
+    exchange:
+      rates:
+        pointsperuscent: 10
+  postgres:
+    database: peeqinventorydb
+    ddlAuto: none
+    enabled: true
+    generateDdl: false
+    name: peeq-postgres
+    secretKey: postgresql-password
+    secretName: jx-staging-peeq-inventory-db
+    username: peeqinventory
+peeq-media:
+  domain: '{{ tpl .Values.global.peeq.domain $ }}'
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    MUX_TEST: true
+    MUX_URLS_PLAYBACK: https://stream.mux.com/
+    SPRING_RABBITMQ_HOST: jx-staging-rabbitmq
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  - name: MUX_TOKEN_ID
+    valueFrom:
+      secretKeyRef:
+        key: MUX_TOKEN_ID
+        name: peeq-media-mux
+  - name: MUX_TOKEN_SECRET
+    valueFrom:
+      secretKeyRef:
+        key: MUX_TOKEN_SECRET
+        name: peeq-media-mux
+  - name: MUX_WEBHOOK_SECRET
+    valueFrom:
+      secretKeyRef:
+        key: MUX_WEBHOOK_SECRET
+        name: peeq-media-mux
+  livenessProbe:
+    initialDelaySeconds: 120
+  persistence:
+    accessMode: ReadWriteMany
+    enabled: true
+    size: 50Gi
+    storageClass: nfs-client
+  postgres:
+    database: peeqmediadb
+    ddlAuto: none
+    enabled: true
+    generateDdl: false
+    name: peeq-postgres
+    secretKey: postgresql-password
+    secretName: jx-staging-peeq-media-db
+    username: peeqmedia
+peeq-message-board:
+  domain: '{{ tpl .Values.global.peeq.domain $ }}'
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  - name: AUTH_KEYCLOAK_CLIENTID
+    valueFrom:
+      secretKeyRef:
+        key: AUTH_KEYCLAOK_CLIENTID
+        name: jx-staging-peeq-message-board
+  - name: AUTH_KEYCLOAK_CLIENTSECRET
+    valueFrom:
+      secretKeyRef:
+        key: AUTH_KEYCLAOK_CLIENTSECRET
+        name: jx-staging-peeq-message-board
+  keycloak:
+    domain: '{{ tpl .Values.global.keycloak.domain $ }}'
+    realm: '{{ .Values.global.keycloak.realm }}'
+  postgres:
+    database: peeqmessageboarddb
+    ddlAuto: none
+    enabled: true
+    generateDdl: false
+    name: peeq-postgres
+    secretKey: postgresql-password
+    secretName: jx-staging-peeq-messageboard-db
+    username: peeqmessageboard
+peeq-notification-service:
+  domain: '{{ tpl .Values.global.peeq.domain $ }}'
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    PEEQ_AUTH_KEYCLOAK_REALM: '{{ .Values.global.keycloak.realm }}'
+    PEEQ_AUTH_KEYCLOAK_URL: '{{ tpl .Values.global.keycloak.url $ }}'
+    PEEQ_CONNECTIONSTRINGS_POSTGRESQL_DATABASE: peeqnotificationdb
+    PEEQ_CONNECTIONSTRINGS_POSTGRESQL_HOST: '{{ .Release.Name }}-peeq-postgres'
+    PEEQ_CONNECTIONSTRINGS_POSTGRESQL_PORT: "5432"
+    PEEQ_CONNECTIONSTRINGS_POSTGRESQL_USERNAME: peeqnotification
+    PEEQ_CONNECTIONSTRINGS_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+    PEEQ_CONNECTIONSTRINGS_RABBITMQ_PORT: "5672"
+    PEEQ_CONNECTIONSTRINGS_RABBITMQ_USER: rabbitmq
+    PEEQ_CONNECTIONSTRINGS_RABBITMQ_VHOST: /
+    PEEQ_MICROSERVICE_NAME: Notifications
+    PEEQ_URL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: PEEQ_AUTH_KEYCLOAK_CLIENTID
+    valueFrom:
+      secretKeyRef:
+        key: KEYCLOAK_CLIENTID
+        name: peeq-notification-secrets
+  - name: PEEQ_AUTH_KEYCLOAK_CLIENTSECRET
+    valueFrom:
+      secretKeyRef:
+        key: KEYCLOAK_CLIENTSECRET
+        name: peeq-notification-secrets
+  - name: PEEQ_CONNECTIONSTRINGS_POSTGRESQL_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: postgresql-password
+        name: jx-staging-peeq-notification-service-db
+  - name: PEEQ_CONNECTIONSTRINGS_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  keycloak:
+    domain: '{{ tpl .Values.global.keycloak.domain $ }}'
+    realm: '{{ .Values.global.keycloak.realm }}'
+  postgres:
+    database: peeqnotificationdb
+    ddlAuto: none
+    enabled: true
+    generateDdl: false
+    name: peeq-postgres
+    secretKey: postgresql-password
+    secretName: jx-staging-peeq-notification-service-db
+    username: peeqnotification
+peeq-postgres:
+  enabled: true
+  existingSecret: jx-staging-peeq-postgres
+  postgresqlExtendedConf:
+    maxConnections: 500
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1048Mi
+peeq-purchase-request-bpm:
+  domain: '{{ tpl .Values.global.expose.domain $ }}'
+  env:
+    JDBC_URL: jdbc:postgresql://{{ .Release.Name }}-peeq-postgres:5432/peeqpurchasebpmdb
+    JDBC_USER: peeqpurchasebpm
+    KEYCLOAK_HOST: '{{ tpl .Values.global.keycloak.url $ }}'
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  - name: JDBC_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: postgresql-password
+        name: '{{ .Release.Name }}-peeq-purchase-bpm-db'
+peeq-query:
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SERVER_FORWARD_HEADERS_STRATEGY: NATIVE
+    SPRING_JPA_SHOW_SQL: "false"
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+    logging_level_com_peeq_query: DEBUG
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  livenessProbe:
+    initialDelaySeconds: 120
+  postgres:
+    ddlAuto: validate
+    enabled: true
+    generateDdl: false
+    name: peeq-postgres
+peeq-recording-meet-greet-keepsake-videos-bpm:
+  domain: '{{ tpl .Values.global.peeq.domain $ }}'
+  env:
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  replicaCount: 0
+peeq-redis:
+  auth: true
+  authKey: redis-password
+  cluster:
+    enabled: true
+    slaveCount: 2
+  existingSecret: peeq-redis
+peeq-sms:
+  env:
+    ASPNETCORE_ENVIRONMENT: Staging
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    PEEQ_AUTH_KEYCLOAK_REALM: '{{ .Values.global.keycloak.realm }}'
+    PEEQ_AUTH_KEYCLOAK_URL: '{{ tpl .Values.global.keycloak.url $ }}'
+    PEEQ_CONNECTIONSTRINGS_POSTGRESQL_DATABASE: peeqsmsdb
+    PEEQ_CONNECTIONSTRINGS_POSTGRESQL_HOST: '{{ .Release.Name }}-peeq-postgres'
+    PEEQ_CONNECTIONSTRINGS_POSTGRESQL_PORT: "5432"
+    PEEQ_CONNECTIONSTRINGS_POSTGRESQL_USERNAME: peeq_sms
+    PEEQ_CONNECTIONSTRINGS_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+    PEEQ_CONNECTIONSTRINGS_RABBITMQ_PORT: "5672"
+    PEEQ_CONNECTIONSTRINGS_RABBITMQ_USER: rabbitmq
+    PEEQ_CONNECTIONSTRINGS_RABBITMQ_VHOST: /
+    PEEQ_MICROSERVICE_NAME: Sms
+    PEEQ_TWILIO_API_KEY: SK1bcc97e50eac411ea428e2d8c00b15d9
+    PEEQ_TWILIO_API_SERVICEID: MG2d4a6570772ecebce78e7ab0665d97d9
+    PEEQ_TWILIO_NOTIFICATIONFROMNUMBER: "+13213513190"
+    PEEQ_TWILIO_SID: AC8ff7c2263c49426b2788547fa69a72b7
+    PEEQ_TWILIO_VERIFICATIONFROMNUMBER: "+13213513190"
+    PEEQ_URL: '{{ tpl .Values.global.peeq.url $ }}'
+  envFrom:
+  - secretRef:
+      name: peeq-sms-twilio
+  extraEnv:
+  - name: PEEQ_CONNECTIONSTRINGS_POSTGRESQL_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: postgresql-password
+        name: jx-staging-peeq-sms-pg
+  - name: PEEQ_CONNECTIONSTRINGS_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+peeq-sse:
+  domain: '{{ tpl .Values.global.peeq.domain $ }}'
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+    SSE_DEBUG_OVERRIDE_KEYCLOAK: YTuaYNkL.S>4T=zs
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  keycloak:
+    domain: '{{ tpl .Values.global.keycloak.domain $ }}'
+    realm: '{{ .Values.global.keycloak.realm }}'
+  postgres:
+    database: peeqssedb
+    ddlAuto: none
+    enabled: true
+    generateDdl: false
+    name: peeq-postgres
+    secretKey: postgresql-password
+    secretName: jx-staging-peeq-sse-db
+    username: peeqsse
+peeq-stream:
+  domain: '{{ tpl .Values.global.peeq.domain $ }}'
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+    PHENIX_REGISTERWEBHOOK: true
+  extraEnv:
+  - name: PHENIX_APPLICATION_ID
+    valueFrom:
+      secretKeyRef:
+        key: PHENIX_APPLICATION_ID
+        name: peeq-stream-phenix
+  - name: PHENIX_APPLICATION_SECRET
+    valueFrom:
+      secretKeyRef:
+        key: PHENIX_APPLICATION_SECRET
+        name: peeq-stream-phenix
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  keycloak:
+    domain: '{{ tpl .Values.global.keycloak.domain $ }}'
+    realm: '{{ .Values.global.keycloak.realm }}'
+  postgres:
+    database: peeqstreamdb
+    ddlAuto: none
+    enabled: true
+    generateDdl: false
+    name: peeq-postgres
+    secretKey: postgresql-password
+    secretName: jx-staging-peeq-stream-db
+    username: peeqstream
+peeq-stripe:
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+    VELOCITYZ_PAYMENT_STRIPE_WEBHOOK_URL: '{{ tpl .Values.global.peeq.url $ }}/api/stripe/webhook'
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  - name: VELOCITYZ_PAYMENT_STRIPE_KEY
+    valueFrom:
+      secretKeyRef:
+        key: VELOCITYZ_PAYMENT_STRIPE_KEY
+        name: peeq-stripe
+  - name: VELOCITYZ_PAYMENT_STRIPE_WEBHOOK_SECRET
+    valueFrom:
+      secretKeyRef:
+        key: VELOCITYZ_PAYMENT_STRIPE_WEBHOOK_SECRET
+        name: peeq-stripe
+  - name: VELOCITYZ_PAYMENT_STRIPE_SIGNING_SECRET
+    valueFrom:
+      secretKeyRef:
+        key: VELOCITYZ_PAYMENT_STRIPE_SIGNING_SECRET
+        name: peeq-stripe
+  postgres:
+    database: peeqstripedb
+    ddlAuto: none
+    enabled: true
+    generateDdl: false
+    name: peeq-postgres
+    secretKey: postgresql-password
+    secretName: jx-staging-peeq-stripe-db
+    username: peeqstripe
+peeq-subscriptions:
+  domain: '{{ tpl .Values.global.peeq.domain $ }}'
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  keycloak:
+    domain: '{{ tpl .Values.global.keycloak.domain $ }}'
+    realm: '{{ .Values.global.keycloak.realm }}'
+  postgres:
+    database: peeqsubscriptionsdb
+    ddlAuto: none
+    enabled: true
+    generateDdl: false
+    name: peeq-postgres
+    secretKey: postgresql-password
+    secretName: jx-staging-peeq-subscriptions-db
+    username: peeq_subscriptions
+peeq-tags:
+  domain: '{{ tpl .Values.global.peeq.domain $ }}'
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  keycloak:
+    domain: '{{ tpl .Values.global.keycloak.domain $ }}'
+    realm: '{{ .Values.global.keycloak.realm }}'
+  postgres:
+    database: peeqtagsdb
+    ddlAuto: none
+    enabled: true
+    generateDdl: false
+    name: peeq-postgres
+    secretKey: postgresql-password
+    secretName: jx-staging-peeq-tags-db
+    username: peeqtags
+peeq-users:
+  env:
+    ASPNETCORE_ENVIRONMENT: Staging
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    PEEQ_AUTH_KEYCLOAK_CLIENTID: peeq-users
+    PEEQ_AUTH_KEYCLOAK_REALM: '{{ .Values.global.keycloak.realm }}'
+    PEEQ_AUTH_KEYCLOAK_URL: '{{ tpl .Values.global.keycloak.url $ }}'
+    PEEQ_CONNECTIONSTRINGS_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+    PEEQ_CONNECTIONSTRINGS_RABBITMQ_PORT: "5672"
+    PEEQ_CONNECTIONSTRINGS_RABBITMQ_USER: rabbitmq
+    PEEQ_CONNECTIONSTRINGS_RABBITMQ_VHOST: /
+    PEEQ_MICROSERVICE_NAME: Users
+    PEEQ_URL: '{{ tpl .Values.global.peeq.url $ }}'
+  envFrom:
+  - secretRef:
+      name: peeq-users
+  extraEnv:
+  - name: PEEQ_CONNECTIONSTRINGS_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+peeq-wallet:
+  domain: '{{ tpl .Values.global.peeq.domain $ }}'
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+    SPRING_RABBITMQ_HOST: jx-staging-rabbitmq
+  extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  keycloak:
+    domain: '{{ tpl .Values.global.keycloak.domain $ }}'
+    realm: '{{ .Values.global.keycloak.realm }}'
+  postgres:
+    database: peeqwalletdb
+    ddlAuto: none
+    enabled: true
+    generateDdl: false
+    name: peeq-postgres
+    secretKey: postgresql-password
+    secretName: jx-staging-peeq-wallet-db
+    username: peeqwallet
+peeq-wallet-db:
+  installed: false
+  postgres:
+    database: peeqwalletdb
+    name: peeq-postgres
+    secretKey: postgresql-password
+    secretName: jx-staging-peeq-wallet-db
+    username: peeqwallet
+peeq-logging:
+  env:
+    MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+  extraEnv:
+  - name: ELASTICSEARCH_HOST
+    valueFrom:
+      secretKeyRef:
+        name: elasticsearch
+        key: ELASTICSEARCH_HOST
+  - name: ELASTICSEARCH_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: elasticsearch
+        key: ELASTICSEARCH_PASSWORD
+  - name: ELASTICSEARCH_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: elasticsearch
+        key: ELASTICSEARCH_USERNAME
+prow: {}
+rabbitmq:
+  existingSecret: rabbitmq
+  persistentVolume:
+    enabled: true
+    size: 20Gi
+  prometheus:
+    operator:
+      enabled: false
+  rabbitmqMemoryHighWatermark: 1500MB
+  rbac:
+    create: true
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 2048Mi
+  service:
+    annotations:
+      fabric8.io/annotations: |
+        kubernetes.io/ingress.class: nginx
+      fabric8.io/expose: "true"
+    clusterIP: None

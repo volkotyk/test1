@@ -1,0 +1,4 @@
+postgres:
+  database: peeqemaildb
+  hostname: jx-staging-peeq-postgres
+  secretName: jx-staging-peeq-email-pg

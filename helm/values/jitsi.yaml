@@ -1,0 +1,26 @@
+nodeSelector:
+  app: jitsi
+namespace: jitsi
+existingSecret: jitsi-secrets
+web:
+  replicaCount: 2
+ingress:
+  enabled: true
+  secretName: tls-favedom-dev-softcannery-com-p
+  hostName: "{{ tpl .Values.xmpp.domain $ }}"
+xmpp:
+  domain: "{{ tpl .Values.global.jitsi.domain $ }}"
+jibri:
+  tolerations:
+  - key: node-role.kubernetes.io/master
+    effect: NoSchedule
+  - key: cloud.google.com/gke-preemptible
+    operator: Equal
+    value: "true"
+    effect: NoSchedule
+  conference:
+    domain: "{{ tpl .Values.global.peeq.domain $ }}"
+  rtmp:
+    domain: "{{ tpl .Values.global.rtmp.ingest.domain $ }}"
+  persistence:
+    enabled: false

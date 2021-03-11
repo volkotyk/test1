@@ -1,0 +1,5 @@
+postgres:
+  database: peeqcelebritydb
+  hostname: jx-staging-peeq-postgres
+  secretName: jx-staging-peeq-celebrity-db
+  username: peeqcelebrity

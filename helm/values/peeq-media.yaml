@@ -1,0 +1,49 @@
+domain: '{{ tpl .Values.global.peeq.domain $ }}'
+env:
+  MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+  MUX_TEST: true
+  MUX_URLS_PLAYBACK: https://stream.mux.com/
+  SPRING_RABBITMQ_HOST: jx-staging-test-rabbitmq
+extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  - name: MUX_TOKEN_ID
+    valueFrom:
+      secretKeyRef:
+        key: MUX_TOKEN_ID
+        name: peeq-media-mux
+  - name: MUX_TOKEN_SECRET
+    valueFrom:
+      secretKeyRef:
+        key: MUX_TOKEN_SECRET
+        name: peeq-media-mux
+  - name: MUX_WEBHOOK_SECRET
+    valueFrom:
+      secretKeyRef:
+        key: MUX_WEBHOOK_SECRET
+        name: peeq-media-mux
+livenessProbe:
+  initialDelaySeconds: 120
+persistence:
+  accessMode: ReadWriteMany
+  enabled: true
+  size: 50Gi
+  existingClaim: jx-peeq-media
+  storageClass: nfs-client
+postgres:
+  database: peeqmediadb
+  ddlAuto: none
+  enabled: true
+  generateDdl: false
+  name: peeq-postgres
+  secretKey: postgresql-password
+  secretName: jx-staging-peeq-media-db
+  username: peeqmedia

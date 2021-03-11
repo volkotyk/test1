@@ -1,0 +1,4 @@
+postgres:
+  database: peeqinventorydb
+  hostname: jx-staging-peeq-postgres
+  secretName: jx-staging-peeq-inventory-db

@@ -1,0 +1,4 @@
+postgres:
+  database: peeqcharitydb
+  hostname: jx-staging-peeq-postgres
+  secretName: jx-staging-peeq-charity-db

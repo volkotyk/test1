@@ -1,0 +1,7 @@
+env:
+  MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+  PEEQ_APP_URL: https://fan-{{ tpl .Values.global.domain $ }}
+  PEEQ_AUTH_KEYCLOAK_URL: '{{ tpl .Values.global.keycloak.url $ }}/auth'
+  PEEQ_FAN_LOGROCKET_ENABLED: "true"
+  PEEQ_FAN_LOGROCKET_KEY: peeq/peeq-fan-fe
+  PEEQ_URL: '{{ tpl .Values.global.peeq.url $ }}'

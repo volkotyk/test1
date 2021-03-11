@@ -1,0 +1,6 @@
+env:
+  PEEQ_APP_URL: https://handler-{{ tpl .Values.global.domain $ }}
+  PEEQ_AUTH_KEYCLOAK_URL: '{{ tpl .Values.global.keycloak.url $ }}/auth'
+  PEEQ_HANDLER_LOGROCKET_ENABLED: "true"
+  PEEQ_HANDLER_LOGROCKET_KEY: peeq/peeq-handler-fe
+  PEEQ_URL: '{{ tpl .Values.global.peeq.url $ }}'

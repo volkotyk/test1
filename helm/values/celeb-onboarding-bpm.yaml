@@ -1,0 +1,23 @@
+domain: '{{ tpl .Values.global.expose.domain $ }}'
+env:
+  JDBC_URL: jdbc:postgresql://{{ .Release.Name }}-peeq-postgres:5432/peeq_celeb_bpm_db
+  JDBC_USER: postgres
+  KEYCLOAK_HOST: '{{ tpl .Values.global.keycloak.url $ }}'
+  MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+  SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  - name: JDBC_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: postgresql-password
+        name: '{{ .Release.Name }}-celeb-onboarding-bpm'

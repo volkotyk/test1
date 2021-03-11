@@ -1,0 +1,267 @@
+helmBinary: ./helm3
+
+helmDefaults:
+  createNamespace: true
+  wait: false
+  skipDeps: true
+  tillerless: true
+
+repositories:
+    # export CHART_REPOSITORY=https://chartmuseum-jx.favedom-dev.softcannery.com
+  - url: '{{ env "CHART_REPOSITORY" | default "http://jenkins-x-chartmuseum:8080" }}'
+    name: releases
+  - url: http://chartmuseum.jenkins-x.io
+    name: chartmuseum-jenkins-x
+  - url: https://codecentric.github.io/helm-charts
+    name: codecentric
+  - url: https://charts.helm.sh/stable
+    name: stable
+  - url: https://charts.bitnami.com/bitnami
+    name: bitnami
+
+releases:
+  - name: jx-staging
+    chart: ./env
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+
+  - name: peeq-conference
+    version: 0.0.709
+    chart: releases/peeq-conference
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/global.yaml
+      - helm/values/peeq-conference.yaml
+
+  - name: peeq-conference-sse
+    version: 0.0.8
+    chart: releases/peeq-conference-sse
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/global.yaml
+      - helm/values/peeq-conference-sse.yaml
+
+  - name: peeq-celeb-fe
+    version: 0.0.976
+    chart: releases/peeq-celeb-fe
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/global.yaml
+      - helm/values/peeq-celeb-fe.yaml
+
+  - name: peeq-fan-fe
+    version: 0.0.415
+    chart: releases/peeq-fan-fe
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/global.yaml
+      - helm/values/peeq-fan-fe.yaml
+
+  - name: peeq-handler-fe
+    version: 0.0.47
+    chart: releases/peeq-handler-fe
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/global.yaml
+      - helm/values/peeq-handler-fe.yaml
+
+  - name: peeq-admin-fe
+    version: 0.0.61
+    chart: releases/peeq-admin-fe
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/global.yaml
+      - helm/values/peeq-admin-fe.yaml
+
+  - name: test-spring-boot-app
+    version: 0.0.40
+    chart: releases/test-spring-boot-app
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/global.yaml
+      - helm/values/test-spring-boot-app.yaml
+
+  - name: email-postgresql-schema
+    version: 0.0.17
+    chart: releases/email-postgresql-schema
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/email-postgresql-schema.yaml
+
+  - name: peeq-broadcast-db
+    version: 0.0.44
+    chart: releases/peeq-broadcast-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-broadcast-db.yaml
+
+  - name: peeq-celebrity-db
+    version: 0.0.10
+    chart: releases/peeq-celebrity-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-celebrity-db.yaml
+
+  - name: peeq-charity-db
+    version: 0.0.6
+    chart: releases/peeq-charity-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-charity-db.yaml
+
+  - name: peeq-content-db
+    version: 0.0.4
+    chart: releases/peeq-content-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-content-db.yaml
+
+  - name: peeq-dwolla-db
+    version: 0.0.16
+    chart: releases/peeq-dwolla-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-dwolla-db.yaml
+
+  - name: peeq-encryption-db
+    version: 0.0.28
+    chart: releases/peeq-encryption-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-encryption-db.yaml
+
+  - name: peeq-fan-db
+    version: 0.0.25
+    chart: releases/peeq-fan-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-fan-db.yaml
+
+  - name: peeq-flyway-db
+    version: 0.0.66
+    chart: releases/peeq-flyway-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-flyway-db.yaml
+
+  - name: peeq-inventory-db
+    version: 0.0.27
+    chart: releases/peeq-inventory-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-inventory-db.yaml
+
+  - name: peeq-media-db
+    version: 0.0.15
+    chart: releases/peeq-media-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-media-db.yaml
+
+  - name: peeq-notification-service-db
+    version: 0.0.12
+    chart: releases/peeq-notification-service-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-notification-service-db.yaml
+
+  - name: peeq-sse-db
+    version: 0.0.35
+    chart: releases/peeq-sse-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-sse-db.yaml
+
+  - name: peeq-stream-db
+    version: 0.0.39
+    chart: releases/peeq-stream-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-stream-db.yaml
+
+  - name: peeq-stripe-db
+    version: 0.0.6
+    chart: releases/peeq-stripe-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-stripe-db.yaml
+
+  - name: peeq-subscriptions-db
+    version: 0.0.31
+    chart: releases/peeq-subscriptions-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-subscriptions-db.yaml
+
+  - name: peeq-tags-db
+    version: 0.0.9
+    chart: releases/peeq-tags-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-tags-db.yaml
+
+  - name: peeq-wallet-db
+    version: 0.0.10
+    chart: releases/peeq-wallet-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-wallet-db.yaml
+
+  - name: sms-postgresql-schema
+    version: 0.0.16
+    chart: releases/sms-postgresql-schema
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/sms-postgresql-schema.yaml
+
+  - name: peeq-message-board-db
+    version: 0.0.41
+    chart: releases/peeq-message-board-db
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/values/peeq-message-board-db.yaml
+
+  - name: jitsi
+    version: 0.0.23
+    chart: releases/jitsi
+    namespace: jitsi
+    installed: false
+    values:
+      - helm/global.yaml
+      - helm/values/jitsi.yaml
+
+  - name: peeq-logging
+    version: 0.0.6
+    chart: releases/peeq-logging
+    namespace: '{{ requiredEnv "DEPLOY_NAMESPACE"}}'
+    installed: true
+    values:
+      - helm/global.yaml
+      - helm/values/peeq-logging.yaml

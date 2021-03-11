@@ -1,0 +1,49 @@
+domain: '{{ tpl .Values.global.peeq.domain $ }}'
+env:
+  MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+  PEEQ_AUTH_KEYCLOAK_REALM: '{{ .Values.global.keycloak.realm }}'
+  PEEQ_AUTH_KEYCLOAK_URL: '{{ tpl .Values.global.keycloak.url $ }}'
+  PEEQ_CONNECTIONSTRINGS_POSTGRESQL_DATABASE: peeqnotificationdb
+  PEEQ_CONNECTIONSTRINGS_POSTGRESQL_HOST: '{{ .Release.Name }}-peeq-postgres'
+  PEEQ_CONNECTIONSTRINGS_POSTGRESQL_PORT: "5432"
+  PEEQ_CONNECTIONSTRINGS_POSTGRESQL_USERNAME: peeqnotification
+  PEEQ_CONNECTIONSTRINGS_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  PEEQ_CONNECTIONSTRINGS_RABBITMQ_PORT: "5672"
+  PEEQ_CONNECTIONSTRINGS_RABBITMQ_USER: rabbitmq
+  PEEQ_CONNECTIONSTRINGS_RABBITMQ_VHOST: /
+  PEEQ_MICROSERVICE_NAME: Notifications
+  PEEQ_URL: '{{ tpl .Values.global.peeq.url $ }}'
+  SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+extraEnv:
+  - name: PEEQ_AUTH_KEYCLOAK_CLIENTID
+    valueFrom:
+      secretKeyRef:
+        key: KEYCLOAK_CLIENTID
+        name: peeq-notification-secrets
+  - name: PEEQ_AUTH_KEYCLOAK_CLIENTSECRET
+    valueFrom:
+      secretKeyRef:
+        key: KEYCLOAK_CLIENTSECRET
+        name: peeq-notification-secrets
+  - name: PEEQ_CONNECTIONSTRINGS_POSTGRESQL_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: postgresql-password
+        name: jx-staging-peeq-notification-service-db
+  - name: PEEQ_CONNECTIONSTRINGS_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+keycloak:
+  domain: '{{ tpl .Values.global.keycloak.domain $ }}'
+  realm: '{{ .Values.global.keycloak.realm }}'
+postgres:
+  database: peeqnotificationdb
+  ddlAuto: none
+  enabled: true
+  generateDdl: false
+  name: peeq-postgres
+  secretKey: postgresql-password
+  secretName: jx-staging-peeq-notification-service-db
+  username: peeqnotification

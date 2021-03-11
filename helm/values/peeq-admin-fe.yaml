@@ -1,0 +1,5 @@
+env:
+  MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+  PEEQ_AUTH_KEYCLOAK_CLIENTID: peeq-celeb
+  PEEQ_AUTH_KEYCLOAK_REALM: '{{ .Values.global.keycloak.realm }}'
+  PEEQ_AUTH_KEYCLOAK_URL: '{{ tpl .Values.global.keycloak.url $ }}'

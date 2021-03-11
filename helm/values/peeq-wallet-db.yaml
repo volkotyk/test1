@@ -1,0 +1,6 @@
+postgres:
+  database: peeqwalletdb
+  hostname: jx-staging-peeq-postgres
+  secretKey: postgresql-password
+  secretName: jx-staging-peeq-wallet-db
+  username: peeqwallet

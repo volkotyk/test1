@@ -1,0 +1,4 @@
+postgres:
+  database: peeqsmsdb
+  hostname: jx-staging-peeq-postgres
+  secretName: jx-staging-peeq-sms-pg

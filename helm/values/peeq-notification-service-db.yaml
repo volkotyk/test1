@@ -1,0 +1,4 @@
+postgres:
+  database: peeqnotificationdb
+  hostname: jx-staging-peeq-postgres
+  secretName: jx-staging-peeq-notification-service-db

@@ -1,0 +1,7 @@
+env:
+  MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+  PEEQ_APP_URL: https://celeb-{{ tpl .Values.global.domain $ }}
+  PEEQ_AUTH_KEYCLOAK_URL: '{{ tpl .Values.global.keycloak.url $ }}/auth'
+  PEEQ_CELEB_LOGROCKET_ENABLED: "true"
+  PEEQ_CELEB_LOGROCKET_KEY: peeq/peeq-celeb-fe
+  PEEQ_URL: '{{ tpl .Values.global.peeq.url $ }}'

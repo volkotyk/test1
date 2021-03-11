@@ -1,0 +1,19 @@
+env:
+  MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+  SPRING_REDIS_HOST: jx-staging-peeq-redis-slave
+  SPRING_REDIS_PORT: 6379
+extraEnv:
+- name: SPRING_REDIS_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      key: redis-password
+      name: peeq-redis
+postgres:
+  database: postgres
+  ddlAuto: none
+  enabled: true
+  generateDdl: false
+  hostname: jx-staging-peeq-postgres
+  secretKey: postgresql-password
+  secretName: jx-staging-peeq-postgres
+  username: postgres

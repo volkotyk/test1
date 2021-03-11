@@ -1,0 +1,34 @@
+env:
+  ASPNETCORE_ENVIRONMENT: Staging
+  MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+  PEEQ_AUTH_KEYCLOAK_REALM: '{{ .Values.global.keycloak.realm }}'
+  PEEQ_AUTH_KEYCLOAK_URL: '{{ tpl .Values.global.keycloak.url $ }}'
+  PEEQ_CONNECTIONSTRINGS_POSTGRESQL_DATABASE: peeqsmsdb
+  PEEQ_CONNECTIONSTRINGS_POSTGRESQL_HOST: '{{ .Release.Name }}-peeq-postgres'
+  PEEQ_CONNECTIONSTRINGS_POSTGRESQL_PORT: "5432"
+  PEEQ_CONNECTIONSTRINGS_POSTGRESQL_USERNAME: peeq_sms
+  PEEQ_CONNECTIONSTRINGS_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  PEEQ_CONNECTIONSTRINGS_RABBITMQ_PORT: "5672"
+  PEEQ_CONNECTIONSTRINGS_RABBITMQ_USER: rabbitmq
+  PEEQ_CONNECTIONSTRINGS_RABBITMQ_VHOST: /
+  PEEQ_MICROSERVICE_NAME: Sms
+  PEEQ_TWILIO_API_KEY: SK1bcc97e50eac411ea428e2d8c00b15d9
+  PEEQ_TWILIO_API_SERVICEID: MG2d4a6570772ecebce78e7ab0665d97d9
+  PEEQ_TWILIO_NOTIFICATIONFROMNUMBER: "+13213513190"
+  PEEQ_TWILIO_SID: AC8ff7c2263c49426b2788547fa69a72b7
+  PEEQ_TWILIO_VERIFICATIONFROMNUMBER: "+13213513190"
+  PEEQ_URL: '{{ tpl .Values.global.peeq.url $ }}'
+envFrom:
+  - secretRef:
+      name: peeq-sms-twilio
+extraEnv:
+  - name: PEEQ_CONNECTIONSTRINGS_POSTGRESQL_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: postgresql-password
+        name: jx-staging-peeq-sms-pg
+  - name: PEEQ_CONNECTIONSTRINGS_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq

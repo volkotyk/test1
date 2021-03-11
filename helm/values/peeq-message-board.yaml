@@ -1,0 +1,37 @@
+domain: '{{ tpl .Values.global.peeq.domain $ }}'
+env:
+  MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+  SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+extraEnv:
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+  - name: AUTH_KEYCLOAK_CLIENTID
+    valueFrom:
+      secretKeyRef:
+        key: AUTH_KEYCLAOK_CLIENTID
+        name: jx-staging-peeq-message-board
+  - name: AUTH_KEYCLOAK_CLIENTSECRET
+    valueFrom:
+      secretKeyRef:
+        key: AUTH_KEYCLAOK_CLIENTSECRET
+        name: jx-staging-peeq-message-board
+keycloak:
+  domain: '{{ tpl .Values.global.keycloak.domain $ }}'
+  realm: '{{ .Values.global.keycloak.realm }}'
+postgres:
+  database: peeqmessageboarddb
+  ddlAuto: none
+  enabled: true
+  generateDdl: false
+  name: peeq-postgres
+  secretKey: postgresql-password
+  secretName: jx-staging-peeq-messageboard-db
+  username: peeqmessageboard

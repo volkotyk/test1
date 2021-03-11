@@ -1,0 +1,4 @@
+Image: gcr.io/jenkinsxio/exposecontroller
+ImageTag: 2.3.118
+BackoffLimit: 5
+Annotations: {}

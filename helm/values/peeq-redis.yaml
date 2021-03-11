@@ -1,0 +1,6 @@
+auth: true
+authKey: redis-password
+cluster:
+  enabled: true
+  slaveCount: 2
+existingSecret: peeq-redis

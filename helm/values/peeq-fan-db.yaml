@@ -1,0 +1,4 @@
+postgres:
+  database: peeqfandb
+  hostname: jx-staging-peeq-postgres
+  secretName: jx-staging-peeq-fan-db

@@ -1,0 +1,20 @@
+global:
+  domain: jx-staging.favedom-dev.softcannery.com
+  keycloak:
+    domain: identity-{{ tpl .Values.global.domain $ }}
+    realm: peeq
+    url: https://{{ tpl .Values.global.keycloak.domain $ }}
+  peeq:
+    domain: app-{{ tpl .Values.global.domain $ }}
+    url: https://{{ tpl .Values.global.peeq.domain $ }}
+  jitsi:
+    domain: jitsi.favedom-dev.softcannery.com
+    url: https://{{ tpl .Values.global.jitsi.domain $ }}
+  rtmp:
+    ingest:
+      domain: nginx-rtmp.default.svc.cluster.local
+    http:
+      domain: nginx-rtmp.favedom-dev.softcannery.com
+      url: https://{{ tpl .Values.global.rtmp.http.domain $ }}
+  rabbitmq:
+    host: jx-staging-rabbitmq

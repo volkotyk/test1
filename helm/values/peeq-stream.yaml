@@ -1,0 +1,37 @@
+domain: '{{ tpl .Values.global.peeq.domain $ }}'
+env:
+  MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+  SPRING_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+extraEnv:
+  - name: PHENIX_APPLICATION_ID
+    valueFrom:
+      secretKeyRef:
+        key: PHENIX_APPLICATION_ID
+        name: peeq-stream-phenix
+  - name: PHENIX_APPLICATION_SECRET
+    valueFrom:
+      secretKeyRef:
+        key: PHENIX_APPLICATION_SECRET
+        name: peeq-stream-phenix
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-username
+        name: rabbitmq
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
+keycloak:
+  domain: '{{ tpl .Values.global.keycloak.domain $ }}'
+  realm: '{{ .Values.global.keycloak.realm }}'
+postgres:
+  database: peeqstreamdb
+  ddlAuto: none
+  enabled: true
+  generateDdl: false
+  name: peeq-postgres
+  secretKey: postgresql-password
+  secretName: jx-staging-peeq-stream-db
+  username: peeqstream

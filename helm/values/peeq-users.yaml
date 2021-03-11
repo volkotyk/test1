@@ -1,0 +1,21 @@
+env:
+  ASPNETCORE_ENVIRONMENT: Staging
+  MICROSERVICE_GATEWAY_BASEURL: '{{ tpl .Values.global.peeq.url $ }}'
+  PEEQ_AUTH_KEYCLOAK_CLIENTID: peeq-users
+  PEEQ_AUTH_KEYCLOAK_REALM: '{{ .Values.global.keycloak.realm }}'
+  PEEQ_AUTH_KEYCLOAK_URL: '{{ tpl .Values.global.keycloak.url $ }}'
+  PEEQ_CONNECTIONSTRINGS_RABBITMQ_HOST: '{{ .Release.Name }}-rabbitmq'
+  PEEQ_CONNECTIONSTRINGS_RABBITMQ_PORT: "5672"
+  PEEQ_CONNECTIONSTRINGS_RABBITMQ_USER: rabbitmq
+  PEEQ_CONNECTIONSTRINGS_RABBITMQ_VHOST: /
+  PEEQ_MICROSERVICE_NAME: Users
+  PEEQ_URL: '{{ tpl .Values.global.peeq.url $ }}'
+envFrom:
+  - secretRef:
+      name: peeq-users
+extraEnv:
+  - name: PEEQ_CONNECTIONSTRINGS_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: rabbitmq-password
+        name: rabbitmq
