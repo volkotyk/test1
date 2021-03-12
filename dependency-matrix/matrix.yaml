@@ -3,19 +3,19 @@ dependencies:
   owner: favedom-dev
   repo: peeq-fan-keycloak-theme
   url: https://github.com/favedom-dev/peeq-fan-keycloak-theme
-  version: 0.0.4
+  version: 0.0.84
   versionURL: https://github.com/favedom-dev/peeq-fan-keycloak-theme/releases/tag/v0.0.84
 - host: github.com
   owner: favedom-dev
   repo: peeq-celeb-keycloak-theme
   url: https://github.com/favedom-dev/peeq-celeb-keycloak-theme
-  version: 0.0.90
+  version: 0.0.99
   versionURL: https://github.com/favedom-dev/peeq-celeb-keycloak-theme/releases/tag/v0.0.99
 - host: github.com
   owner: favedom-dev
   repo: peeq-keycloak
   url: https://github.com/favedom-dev/peeq-keycloak
-  version: 0.0.5
+  version: 0.0.6
   versionURL: https://github.com/favedom-dev/peeq-keycloak/releases/tag/v0.0.6
 - host: github.com
   owner: favedom-dev
@@ -33,13 +33,13 @@ dependencies:
   owner: favedom-dev
   repo: peeq-flyway-db
   url: https://github.com/favedom-dev/peeq-flyway-db
-  version: 0.0.6
+  version: 0.0.67
   versionURL: https://github.com/favedom-dev/peeq-flyway-db/releases/tag/v0.0.66
 - host: github.com
   owner: favedom-dev
   repo: peeq-encryption-db
   url: https://github.com/favedom-dev/peeq-encryption-db
-  version: 0.0.2
+  version: 0.0.28
   versionURL: https://github.com/favedom-dev/peeq-encryption-db/releases/tag/v0.0.28
 - host: github.com
   owner: favedom-dev
@@ -57,7 +57,7 @@ dependencies:
   owner: favedom-dev
   repo: peeq-stream-db
   url: https://github.com/favedom-dev/peeq-stream-db
-  version: 0.0.9
+  version: 0.0.39
   versionURL: https://github.com/favedom-dev/peeq-stream-db/releases/tag/v0.0.39
 - host: github.com
   owner: favedom-dev
@@ -81,13 +81,13 @@ dependencies:
   owner: favedom-dev
   repo: peeq-content-db
   url: https://github.com/favedom-dev/peeq-content-db
-  version: 0.0.3
+  version: 0.0.4
   versionURL: https://github.com/favedom-dev/peeq-content-db/releases/tag/v0.0.4
 - host: github.com
   owner: favedom-dev
   repo: peeq-tags-db
   url: https://github.com/favedom-dev/peeq-tags-db
-  version: 0.0.3
+  version: 0.0.9
   versionURL: https://github.com/favedom-dev/peeq-tags-db/releases/tag/v0.0.9
 - host: github.com
   owner: favedom-dev
@@ -135,7 +135,7 @@ dependencies:
   owner: favedom-dev
   repo: peeq-flyway-db
   url: https://github.com/favedom-dev/peeq-flyway-db
-  version: 0.0.66
+  version: 0.0.67
   versionURL: https://github.com/favedom-dev/peeq-flyway-db/releases/tag/v0.0.66
 - host: github.com
   owner: favedom-dev
@@ -165,19 +165,19 @@ dependencies:
   owner: favedom-dev
   repo: peeq-handler-fe
   url: https://github.com/favedom-dev/peeq-handler-fe
-  version: 0.0.47
+  version: 0.0.48
   versionURL: https://github.com/favedom-dev/peeq-handler-fe/releases/tag/v0.0.47
 - host: github.com
   owner: favedom-dev
   repo: peeq-celeb-fe
   url: https://github.com/favedom-dev/peeq-celeb-fe
-  version: 0.0.976
+  version: 0.0.987
   versionURL: https://github.com/favedom-dev/peeq-celeb-fe/releases/tag/v0.0.976
 - host: github.com
   owner: favedom-dev
   repo: peeq-fan-fe
   url: https://github.com/favedom-dev/peeq-fan-fe
-  version: 0.0.415
+  version: 0.0.419
   versionURL: https://github.com/favedom-dev/peeq-fan-fe/releases/tag/v0.0.415
 - host: github.com
   owner: favedom-dev
@@ -189,7 +189,7 @@ dependencies:
   owner: favedom-dev
   repo: peeq-conference
   url: https://github.com/favedom-dev/peeq-conference
-  version: 0.0.709
+  version: 0.0.711
   versionURL: https://github.com/favedom-dev/peeq-conference/releases/tag/v0.0.709
 - host: github.com
   owner: favedom-dev
