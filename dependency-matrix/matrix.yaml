@@ -33,13 +33,13 @@ dependencies:
   owner: favedom-dev
   repo: peeq-flyway-db
   url: https://github.com/favedom-dev/peeq-flyway-db
-  version: 0.0.6
+  version: 0.0.66
   versionURL: https://github.com/favedom-dev/peeq-flyway-db/releases/tag/v0.0.66
 - host: github.com
   owner: favedom-dev
   repo: peeq-encryption-db
   url: https://github.com/favedom-dev/peeq-encryption-db
-  version: 0.0.2
+  version: 0.0.28
   versionURL: https://github.com/favedom-dev/peeq-encryption-db/releases/tag/v0.0.28
 - host: github.com
   owner: favedom-dev
@@ -57,7 +57,7 @@ dependencies:
   owner: favedom-dev
   repo: peeq-stream-db
   url: https://github.com/favedom-dev/peeq-stream-db
-  version: 0.0.9
+  version: 0.0.39
   versionURL: https://github.com/favedom-dev/peeq-stream-db/releases/tag/v0.0.39
 - host: github.com
   owner: favedom-dev
@@ -87,7 +87,7 @@ dependencies:
   owner: favedom-dev
   repo: peeq-tags-db
   url: https://github.com/favedom-dev/peeq-tags-db
-  version: 0.0.3
+  version: 0.0.9
   versionURL: https://github.com/favedom-dev/peeq-tags-db/releases/tag/v0.0.9
 - host: github.com
   owner: favedom-dev
