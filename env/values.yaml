@@ -141,7 +141,7 @@ identity:
             name: rabbitmq
     extraInitContainers: |-
       - name: theme-provider
-        image: gcr.io/favedom-dev/peeq-fan-keycloak-theme:0.0.84
+        image: gcr.io/favedom-dev/peeq-fan-keycloak-theme:0.0.102
         imagePullPolicy: IfNotPresent
         command:
           - sh
@@ -154,7 +154,7 @@ identity:
           - name: peeq-fan
             mountPath: /peeq-fan
       - name: theme-provider-celeb
-        image: gcr.io/favedom-dev/peeq-celeb-keycloak-theme:0.0.99
+        image: gcr.io/favedom-dev/peeq-celeb-keycloak-theme:0.0.114
         imagePullPolicy: IfNotPresent
         command:
           - sh
@@ -167,7 +167,7 @@ identity:
           - name: peeq-celeb
             mountPath: /peeq-celeb
       - name: theme-provider-handler
-        image: gcr.io/favedom-dev/peeq-handler-keycloak-theme:0.0.5
+        image: gcr.io/favedom-dev/peeq-handler-keycloak-theme:0.0.17
         imagePullPolicy: IfNotPresent
         command:
           - sh
